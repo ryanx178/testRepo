@@ -200,6 +200,7 @@ class Pawn : public ChessPiece {
 private:
 
 	vector<int> tilesM;
+	vector<Square*> tilesMove;
 
 	int prevPosition = -1;
 	int forwardOne = UP;
@@ -280,6 +281,7 @@ public:
 	// should be private?
 	void updateMoves(Square* b, int pos) {
 		tilesM.clear();
+		tilesMove.clear();
 		// needs to check front left/front and right/front
 
 		// in front of pawn is 8
@@ -299,6 +301,8 @@ public:
 		// check up one
 		if (!outOfBounds(pos + forwardOne) && b[pos + forwardOne].is_empty()) {
 			tilesM.push_back(pos + forwardOne);
+
+			tilesMove.push_back(&b[pos+forwardOne]);
 		}
 
 
@@ -316,6 +320,7 @@ public:
 		if (!outOfBounds(pos + forwardOne + LEFT) && !b[pos + forwardOne + LEFT].is_empty()) {
 			if (!onLeftEdge && /*!is_friendly(b, pos+forwardOne+LEFT)*/b[pos + forwardOne + LEFT].getPiece()->getColor() != color) {
 				tilesM.push_back(pos + forwardOne + LEFT);
+				tilesMove.push_back(&b[pos + forwardOne + LEFT]);
 			}
 		}
 
@@ -324,6 +329,7 @@ public:
 			if (!onRightEdge && !is_friendly(b, pos + forwardOne + RIGHT)/*b[pos + forwardOne + RIGHT].getPiece()->getColor() != color*/) {
 				// This piece can go diagonal to the right.
 				tilesM.push_back(pos + forwardOne + RIGHT);
+				tilesMove.push_back(&b[pos + forwardOne + RIGHT]);
 			}
 		}
 		// check up 2
@@ -331,6 +337,7 @@ public:
 			// Second, check if tile is empty and this pawn hasnt moved AND there is nothing in between pawn and 2 up
 			if (b[pos + forwardOne + forwardOne].is_empty() && b[pos+forwardOne].is_empty() && !hasMoved) {
 				tilesM.push_back(pos + forwardOne + forwardOne);
+				tilesMove.push_back(&b[pos + forwardOne + forwardOne]);
 			}
 		}
 
@@ -350,8 +357,7 @@ public:
 	// override
 	void move(Square*) {};
 	vector<Square*> tilesMovable() {
-		vector<Square*> s;
-		return s;
+		return tilesMove;
 	};
 	
 
@@ -365,7 +371,7 @@ private:
 	bool castPossible;
 public:
 	Rook();
-	Rook(bool, Square*);
+	Rook(char, Square*);
 	~Rook();
 	void move(Square*);
 	vector<Square*> tilesMovable();
@@ -376,6 +382,11 @@ public:
 	Square* getLocationSquareRook() {
 		return location;
 	}
+
+
+	virtual void move(Square*, int, int) {};
+	virtual void updateMoves(Square*, int) {};
+	virtual void printMoves() {};
 };
 
 Rook::Rook() {
@@ -385,7 +396,7 @@ Rook::Rook() {
 	this->castPossible = 1;
 }
 
-Rook::Rook(bool side, Square* loc) {
+Rook::Rook(char side, Square* loc) {
 	this->color = side;
 	this->location = loc;
 	this->pieceLetter = 'R';
@@ -702,6 +713,7 @@ public:
 
 		
 		Board[ROW2 + 3].setPiece(new King('B', &Board[ROW2 + 3]));
+		Board[ROW1 + 3].setPiece(new Rook('B', &Board[ROW1 + 3]));
 		
 
 
