@@ -701,19 +701,27 @@ public:
 		Board = new Square[SIZE];
 
 
-		//initialize all ROW2 with black pawn
+		//initialize entire row with black pawn
 		for (int i = COL1; i <= COL8; ++i) {
 			Board[ROW4 + i].setPiece(new Pawn('B',Board,ROW4+i));
 		}
-		//initialize all ROW6 with white pawn
+		//initialize entire row with white pawn
 		for (int i = COL1; i <= COL8; ++i) {
 			Board[ROW7 + i].setPiece(new Pawn('W', Board, ROW7 + i));
 		}
 
 
 		
-		Board[ROW2 + 3].setPiece(new King('B', &Board[ROW2 + 3]));
-		Board[ROW1 + 3].setPiece(new Rook('B', &Board[ROW1 + 3]));
+		/*Board[ROW2 + 3].setPiece(new King('B', &Board[ROW2 + 3]));
+		Board[ROW1 + 3].setPiece(new Rook('B', &Board[ROW1 + 3]));*/
+
+		Board[0].setPiece(new Rook('W', &Board[0]));
+		Board[7].setPiece(new Rook('W', &Board[7]));
+		Board[3].setPiece(new King('W', &Board[3]));
+		//Black pieces
+		Board[56].setPiece(new Rook('B', &Board[56]));
+		Board[63].setPiece(new Rook('B', &Board[63]));
+		Board[59].setPiece(new King('B', &Board[59]));
 		
 
 
@@ -740,8 +748,8 @@ public:
 	}
 
 	//highlights movable spots
-	void pickSquare(const int positionOfPiece) {
-		
+	Square* getSquare(int pos) {
+		return &Board[pos];
 
 		//highlight the moves of that piece
 		//if the player wants to move it then it should call move function of piece - if NOT then it should unhighlight the moves
@@ -776,22 +784,10 @@ public:
 };
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 int main() {
 
 	Chessboard b1;
-	
+
 
 	int initialPos;
 	int finalPos;
@@ -802,6 +798,7 @@ int main() {
 		b1.printMovesOnSquare(initialPos);
 		cin >> finalPos;
 		b1.move(initialPos, finalPos);
+		b1.getSquare(initialPos)->getPiece()->move(b1.getSquare(finalPos));
 
 
 	}
