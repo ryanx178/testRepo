@@ -25,55 +25,6 @@ class King;
 class Rook;
 
 
-
-// ADD a copy constructor and assignment constructor?
-
-
-
-//string numXYtoString(int x, int y) {
-//	return to_string(x + 1) + to_string(y + 97);
-//}
-//
-//int chessCharToNum(char ch) {
-//	switch (ch) {
-//	case '8':
-//	case 'a':
-//		return 0;
-//		break;
-//	case '7':
-//	case 'b':
-//		return 1;
-//		break;
-//	case '6':
-//	case 'c':
-//		return 2;
-//		break;
-//	case '5':
-//	case 'd':
-//		return 3;
-//		break;
-//	case '4':
-//	case 'e':
-//		return 4;
-//		break;
-//	case '3':
-//	case 'f':
-//		return 5;
-//		break;
-//	case '2':
-//	case 'g':
-//		return 6;
-//		break;
-//	case '1':
-//	case 'h':
-//		return 7;
-//		break;
-//
-//
-//	}
-//}
-
-
 class ChessPiece {
 protected:
 	char color;
@@ -406,98 +357,7 @@ public:
 
 	
 };
-class Chessboard {
-private:
-	// 1d chessboard array
-	Square* Board;
 
-	void updateAll() {
-		for (int i = 0; i < SIZE; ++i) {
-			if (!Board[i].is_empty()) {
-				Board[i].getPiece()->updateMoves(Board,i);
-			}
-		}
-	}
-public:
-	
-	//will be used to initialize the chessboard
-	Chessboard() {
-		
-		//Assume that Black is top and White it bottom
-		//dynamically allocate each square 
-		//dynamically allocate pieces onto the board
-
-
-		Board = new Square[SIZE];
-
-
-		//initialize all ROW2 with black pawn
-		for (int i = COL1; i <= COL8; ++i) {
-			Board[ROW4 + i].setPiece(new Pawn('B',Board,ROW4+i));
-		}
-		//initialize all ROW6 with white pawn
-		for (int i = COL1; i <= COL8; ++i) {
-			Board[ROW7 + i].setPiece(new Pawn('W', Board, ROW7 + i));
-		}
-
-
-	}
-	~Chessboard() {
-		delete[] Board;
-	}
-
-	
-
-	//could it be a bool function?
-	void move(int initialPositionOfPiece, int finalPositionOfPiece) {
-		updateAll();
-		//8a is 00
-		//1h is 77
-		if (!Board[initialPositionOfPiece].is_empty()) {
-			Board[initialPositionOfPiece].getPiece()->move(Board, initialPositionOfPiece, finalPositionOfPiece);
-		}
-		else {
-			cout << "Square is empty - Chessboard::move" << endl;
-		}
-		
-		
-	}
-
-	//highlights movable spots
-	void pickSquare(const int positionOfPiece) {
-		
-
-		//highlight the moves of that piece
-		//if the player wants to move it then it should call move function of piece - if NOT then it should unhighlight the moves
-	}
-
-
-	void printChessBoard() {
-
-		for (int i = 0; i < SIZE; ++i) {
-			if (i % 8 == 0 && i != 0) {
-				cout << endl;
-			}
-			cout << Board[i].getPieceLetter();
-			
-		}
-
-	}
-	
-	void printMovesOnSquare(int pos) {
-		
-		if (!Board[pos].is_empty()) {
-			Board[pos].getPiece()->updateMoves(Board, pos);
-			Board[pos].getPiece()->printMoves();
-		}
-		else {
-			cout << "Square is empty - Chessboard::printMovesOnSquare" << endl;
-		}
-		
-	}
-	
-
-};
 
 
 class Rook : public ChessPiece {
@@ -655,18 +515,26 @@ void Rook::castling() {
 }
 
 
+
+
+
 class King : public ChessPiece {
 private:
 	bool castPossible;
 public:
 	King();
-	King(bool, Square*);
+	King(char, Square*);
 	~King();
 	void move(Square*);
 	vector<Square*> tilesMovable();
 	bool castlingPossible(Rook*);
 	void disableCastling();
 	void castling(Rook*);
+
+
+	virtual void move(Square*, int, int) {};
+	virtual void updateMoves(Square*, int) {};
+	virtual void printMoves() {};
 };
 
 King::King() {
@@ -676,7 +544,7 @@ King::King() {
 	this->castPossible = 1;
 }
 
-King::King(bool side, Square* loc) {
+King::King(char side, Square* loc) {
 	this->color = side;
 	this->location = loc;
 	this->pieceLetter = 'K';
@@ -793,6 +661,111 @@ void King::castling(Rook* castle) {
 	}
 	cout << "Castling not possible" << endl;
 }
+
+
+
+
+class Chessboard {
+private:
+	// 1d chessboard array
+	Square* Board;
+
+	void updateAll() {
+		for (int i = 0; i < SIZE; ++i) {
+			if (!Board[i].is_empty()) {
+				Board[i].getPiece()->updateMoves(Board,i);
+			}
+		}
+	}
+public:
+	
+	//will be used to initialize the chessboard
+	Chessboard() {
+		
+		//Assume that Black is top and White it bottom
+		//dynamically allocate each square 
+		//dynamically allocate pieces onto the board
+
+
+		Board = new Square[SIZE];
+
+
+		//initialize all ROW2 with black pawn
+		for (int i = COL1; i <= COL8; ++i) {
+			Board[ROW4 + i].setPiece(new Pawn('B',Board,ROW4+i));
+		}
+		//initialize all ROW6 with white pawn
+		for (int i = COL1; i <= COL8; ++i) {
+			Board[ROW7 + i].setPiece(new Pawn('W', Board, ROW7 + i));
+		}
+
+
+		
+		Board[ROW2 + 3].setPiece(new King('B', &Board[ROW2 + 3]));
+		
+
+
+	}
+	~Chessboard() {
+		delete[] Board;
+	}
+
+	
+
+	//could it be a bool function?
+	void move(int initialPositionOfPiece, int finalPositionOfPiece) {
+		updateAll();
+		//8a is 00
+		//1h is 77
+		if (!Board[initialPositionOfPiece].is_empty()) {
+			Board[initialPositionOfPiece].getPiece()->move(Board, initialPositionOfPiece, finalPositionOfPiece);
+		}
+		else {
+			cout << "Square is empty - Chessboard::move" << endl;
+		}
+		
+		
+	}
+
+	//highlights movable spots
+	void pickSquare(const int positionOfPiece) {
+		
+
+		//highlight the moves of that piece
+		//if the player wants to move it then it should call move function of piece - if NOT then it should unhighlight the moves
+	}
+
+
+	void printChessBoard() {
+
+		for (int i = 0; i < SIZE; ++i) {
+			if (i % 8 == 0 && i != 0) {
+				cout << endl;
+			}
+			cout << Board[i].getPieceLetter();
+			
+		}
+
+	}
+	
+	void printMovesOnSquare(int pos) {
+		
+		if (!Board[pos].is_empty()) {
+			Board[pos].getPiece()->updateMoves(Board, pos);
+			Board[pos].getPiece()->printMoves();
+		}
+		else {
+			cout << "Square is empty - Chessboard::printMovesOnSquare" << endl;
+		}
+		
+	}
+	
+
+};
+
+
+
+
 
 
 
