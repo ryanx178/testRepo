@@ -29,78 +29,67 @@ class ChessPiece {
 protected:
 	char color;
 	char pieceLetter;
-
-	Square* location;
+	vector<int> availableMoves;
 public:
-	// Get the type of a piece no matter what type of piece is on there
 	
+	bool inVectorTM(int x) {
+		for (int i = 0; i < availableMoves.size(); ++i) {
+			if (availableMoves[i] == x) {
+				return true;
+			}
+		}
+		return false;
+	}
+	bool outOfBounds(int end) {
+		if (end < 0 || end > SIZE - 1) {
+			return true;
+		}
+		return false;
+
+	}
+
 	char getLetter() { 
 		return pieceLetter;
 	}
 	char getColor() {
 		return color;
 	}
-	//virtual ~ChessPiece() {};
 
 	virtual void move(Square*,int,int) = 0;
 	virtual void updateMoves(Square*, int) = 0;
-	virtual void printMoves() = 0;
+	void printMoves() {
+		for (int i = 0; i < availableMoves.size(); ++i) {
+			cout << availableMoves[i] << " ";
+		}
+		cout << endl;
+	}
+
+	virtual bool is_friendly(Square*, int) = 0;
 
 	
 	//virtual ~ChessPiece() = 0;
-	virtual void move(Square*) = 0;
-	virtual vector<Square*> tilesMovable() = 0;
-	char getType() {
-		return pieceLetter;
-	}
-	bool getColor() const;
-	/*string getLocation() const;*/
-	Square* getLocation() const;
-
-	void setLocation(Square*);
+	//virtual void move(Square*) = 0;
+	//virtual vector<int> tilesMovable() = 0;
+	
 
 	
 };
 
-
-bool ChessPiece::getColor() const {
-	return this->color;
-}
-
-//string ChessPiece::getLocation() const {
-//	return this->location->printLocation();
-//}
-Square* ChessPiece::getLocation() const {
-	return this->location;
-}
-
-void ChessPiece::setLocation(Square* s) {
-	this->location = s;
-}
-
-
-
-
 class Square {
 private:
 	ChessPiece* piece;
-
-
-	//ChessPiece* pieceID;
-	int location;
-
 public:
-	//Square() {
-	//	piece = nullptr;
-	//}
-	//~Square() {
-	//	// should delete even if piece is nullptr?
-	//	if (piece != nullptr) 
-	//		delete piece;
-	//		
-	//	piece = nullptr;
+	Square() {
+		piece = nullptr;
+	}
+	~Square() {
+		// should delete even if piece is nullptr?
+		if (piece != nullptr) 
+			delete piece;
+			
+		piece = nullptr;
 
-	//}
+	}
 	bool is_empty() {
 		if (piece == nullptr) {
 			return true;
@@ -118,111 +107,33 @@ public:
 	}
 
 	// needs to be set to nullptr if a piece wants to get onto a different square
-	/*void setPiece(ChessPiece* c) {
-		piece = c;
-	}*/
 	ChessPiece* getPiece() {
 		return piece;
 	}
-
-
-
-
-
-
-	Square();
-	Square(ChessPiece*, int);
-	~Square();
-	bool isEmpty();
-	ChessPiece* getPieceID();
-	int getLocation();
-	void printLocation();
-	void clearSquare();
-	void setPiece(ChessPiece*);
-
-	void setLocation(int);
-
+	void setPiece(ChessPiece* c) {
+		piece = c;
+	}
 
 };
-
-void Square::setLocation(int l) {
-	location = l;
-}
-
-Square::Square() {
-	piece = nullptr;
-
-	//pieceID = nullptr;
-	location = -1;
-}
-
-Square::Square(ChessPiece* piece, int point) {
-	piece = piece;
-	location = point;
-}
-
-Square::~Square() {
-	if (piece != nullptr) {
-		delete piece;
-	}
-	
-	
-	//delete this->pieceID;
-}
-
-bool Square::isEmpty() {
-	return (piece == nullptr);
-}
-
-ChessPiece* Square::getPieceID() {
-	return this->piece;
-}
-
-int Square::getLocation() {
-	return this->location;
-}
-
-void Square::printLocation() {
-	cout << this->location;
-}
-
-void Square::clearSquare() {
-	this->piece->setLocation(nullptr);
-	piece = nullptr;
-}
-
-void Square::setPiece(ChessPiece* c) {
-	piece = c;
-}
 
 
 class Pawn : public ChessPiece {
 private:
-
-	vector<int> tilesM;
-	vector<Square*> tilesMove;
-
 	int prevPosition = -1;
 	int forwardOne = UP;
 	
 	bool hasMoved = false;
 
 
-	bool outOfBounds(int end) {
-		if (end < 0 || end > SIZE - 1) {
-			return true;
-		}
-		return false;
-		
-	}
-	bool inVectorTM(int x) {
+	
+	/*bool inVectorTM(int x) {
 		for (int i = 0; i < tilesM.size(); ++i) {
 			if (tilesM[i] == x) {
 				return true;
 			}
 		}
 		return false;
-	}
+	}*/
 
 	bool is_friendly(Square* b, int here) {
 		if (b[here].getPiece()->getColor() == color) {
@@ -240,18 +151,15 @@ private:
 	
 
 public:
-	Pawn(char c, Square* b, int pos) {
+	Pawn(char c) {
 		if (c == 'B') forwardOne = DOWN;
 		
-		//updateMoves(b,pos);
 		color = c;
 		pieceLetter = 'P';
 	}
 	~Pawn() {}
 
 	// Assume that Black is top and White is bottom
-	//void highlightMoves(Square* b, int positionOfPiece) {}
-
 	void move(Square* b, int initialPositionOfPiece, int finalPositionOfPiece) {
 		if (!inVectorTM(finalPositionOfPiece)) {
 			cout << "Could not move to location" << endl;
@@ -278,10 +186,8 @@ public:
 		//updateMoves(b, finalPositionOfPiece);
 	}
 
-	// should be private?
 	void updateMoves(Square* b, int pos) {
-		tilesM.clear();
-		tilesMove.clear();
+		availableMoves.clear();
 		// needs to check front left/front and right/front
 
 		// in front of pawn is 8
@@ -292,17 +198,13 @@ public:
 		bool onLeftEdge = pos % 8 == 0;
 		bool onRightEdge = (pos - 7) % 8 == 0;
 		
-		
 	
-
-
-		
 
 		// check up one
 		if (!outOfBounds(pos + forwardOne) && b[pos + forwardOne].is_empty()) {
-			tilesM.push_back(pos + forwardOne);
+			availableMoves.push_back(pos + forwardOne);
 
-			tilesMove.push_back(&b[pos+forwardOne]);
+			//tilesMove.push_back(&b[pos+forwardOne]);
 		}
 
 
@@ -319,8 +221,8 @@ public:
 		// check left up // took out else
 		if (!outOfBounds(pos + forwardOne + LEFT) && !b[pos + forwardOne + LEFT].is_empty()) {
 			if (!onLeftEdge && /*!is_friendly(b, pos+forwardOne+LEFT)*/b[pos + forwardOne + LEFT].getPiece()->getColor() != color) {
-				tilesM.push_back(pos + forwardOne + LEFT);
-				tilesMove.push_back(&b[pos + forwardOne + LEFT]);
+				availableMoves.push_back(pos + forwardOne + LEFT);
+				//tilesMove.push_back(&b[pos + forwardOne + LEFT]);
 			}
 		}
 
@@ -328,16 +230,16 @@ public:
 		if (!outOfBounds(pos + forwardOne + RIGHT) && !b[pos + forwardOne + RIGHT].is_empty()) {
 			if (!onRightEdge && !is_friendly(b, pos + forwardOne + RIGHT)/*b[pos + forwardOne + RIGHT].getPiece()->getColor() != color*/) {
 				// This piece can go diagonal to the right.
-				tilesM.push_back(pos + forwardOne + RIGHT);
-				tilesMove.push_back(&b[pos + forwardOne + RIGHT]);
+				availableMoves.push_back(pos + forwardOne + RIGHT);
+				//tilesMove.push_back(&b[pos + forwardOne + RIGHT]);
 			}
 		}
 		// check up 2
 		if (!outOfBounds(pos + forwardOne + forwardOne)) {
 			// Second, check if tile is empty and this pawn hasnt moved AND there is nothing in between pawn and 2 up
 			if (b[pos + forwardOne + forwardOne].is_empty() && b[pos+forwardOne].is_empty() && !hasMoved) {
-				tilesM.push_back(pos + forwardOne + forwardOne);
-				tilesMove.push_back(&b[pos + forwardOne + forwardOne]);
+				availableMoves.push_back(pos + forwardOne + forwardOne);
+				//tilesMove.push_back(&b[pos + forwardOne + forwardOne]);
 			}
 		}
 
@@ -347,333 +249,708 @@ public:
 		
 		
 	}
-
-	void printMoves() {
-		for (int i = 0; i < tilesM.size(); ++i) {
-			cout << tilesM[i] << endl;
-		}
-	}
-
-	// override
-	void move(Square*) {};
-	vector<Square*> tilesMovable() {
-		return tilesMove;
-	};
 	
 
 	
 };
-
-
 
 class Rook : public ChessPiece {
 private:
-	bool castPossible;
-public:
-	Rook();
-	Rook(char, Square*);
-	~Rook();
-	void move(Square*);
-	vector<Square*> tilesMovable();
-	bool castlingPossible();
-	void disableCastling();
-	void castling();
-
-	Square* getLocationSquareRook() {
-		return location;
-	}
-
-
-	virtual void move(Square*, int, int) {};
-	virtual void updateMoves(Square*, int) {};
-	virtual void printMoves() {};
-};
-
-Rook::Rook() {
-	this->color = 0;
-	this->location = NULL;
-	this->pieceLetter = 'R';
-	this->castPossible = 1;
-}
-
-Rook::Rook(char side, Square* loc) {
-	this->color = side;
-	this->location = loc;
-	this->pieceLetter = 'R';
-	this->castPossible = 1;
-}
-
-vector<Square*> Rook::tilesMovable() {
-	vector<Square*> tiles;
-	string availTiles = "";
-	int columnRelative;
-	int rowRelative;
-	int pieceLocation = this->location->getLocation();
-	rowRelative = pieceLocation % 8;
-	columnRelative = pieceLocation / 8;
-	Square* tempLoc = this->location - 1;
-	for (int i = rowRelative; i > 0; i--) {
-		if (tempLoc->isEmpty() == true) {
-			tiles.push_back(tempLoc);
+	bool is_friendly(Square* b, int here) {
+		if (b[here].getPiece()->getColor() == color) {
+			return true;
 		}
-		else if (tempLoc->getPieceID()->getColor() != this->getColor()) {
-			tiles.push_back(tempLoc);
-			break;
-		}
-		else if (tempLoc->getPieceID()->getColor() == this->getColor()) {
-			break;
-		}
-		tempLoc--;
-	}
-	tempLoc = this->location + 1;
-	for (int j = 7; j > rowRelative; j--) {
-		if (tempLoc->isEmpty() == true) {
-			tiles.push_back(tempLoc);
-		}
-		else if (tempLoc->getPieceID()->getColor() != this->getColor()) {
-			tiles.push_back(tempLoc);
-			break;
-		}
-		else if (tempLoc->getPieceID()->getColor() == this->getColor()) {
-			break;
-		}
-		tempLoc++;
-	}
-	tempLoc = this->location - 8;
-	for (int k = columnRelative; k > 0; k--) {
-		if (tempLoc->isEmpty() == true) {
-			tiles.push_back(tempLoc);
-		}
-		else if (tempLoc->getPieceID()->getColor() != this->getColor()) {
-			tiles.push_back(tempLoc);
-			break;
-		}
-		else if (tempLoc->getPieceID()->getColor() == this->getColor()) {
-			break;
-		}
-		tempLoc -= 8;
-	}
-	tempLoc = this->location + 8;
-	for (int h = 7; h > columnRelative; h--) {
-		if (tempLoc->isEmpty() == true) {
-			tiles.push_back(tempLoc);
-		}
-		else if (tempLoc->getPieceID()->getColor() != this->getColor()) {
-			tiles.push_back(tempLoc);
-			break;
-		}
-		else if (tempLoc->getPieceID()->getColor() == this->getColor()) {
-			break;
-		}
-		tempLoc += 8;
-	}
-	cout << "Available tiles:";
-	for (int n = 0; n < tiles.size(); n++) {
-		/*cout << " " << tiles.at(n)->printLocation();*/
-		cout << " ";
-		tiles.at(n)->printLocation();
-	}
-	cout << '\n';
-	return tiles;
-}
-
-void Rook::move(Square* targetTile) {
-	vector<Square*> availTiles = this->tilesMovable();
-	for (int i = 0; i < availTiles.size(); i++) {
-		if (targetTile == availTiles.at(i)) {
-			targetTile->clearSquare();
-			location->clearSquare();
-			location = targetTile;
-			location->setPiece(this);
-			this->castPossible = false;
-			return;
-		}
-	}
-	cout << "Can't move to this square." << endl;
-}
-
-bool Rook::castlingPossible() {
-	if (!castPossible) {
 		return false;
 	}
-	if (this->location->getLocation() % 8 == 0) {
-		if ((location + 1)->isEmpty() && (location + 2)->isEmpty() && (location + 3)->isEmpty()) {
-			return true;
+public:
+	
+	Rook(char c) {
+		color = c;
+		pieceLetter = 'R';
+	}
+	~Rook() {}
+
+	void move(Square* b, int initialPositionOfPiece, int finalPositionOfPiece) {
+		if (!inVectorTM(finalPositionOfPiece)) {
+			cout << "Could not move to location" << endl;
+			return;
+		}
+		// Now the move is definetly available
+
+		if (!b[finalPositionOfPiece].is_empty()) {
+			delete b[finalPositionOfPiece].getPiece();
+		}
+
+		b[finalPositionOfPiece].setPiece(b[initialPositionOfPiece].getPiece());
+		b[initialPositionOfPiece].setPiece(nullptr);
+	}
+	void updateMoves(Square* b, int pos) {
+		availableMoves.clear();
+
+		int columnRelative;
+		columnRelative = pos % 8;
+
+		// check down
+		for (int i = 8; pos + i < 64; i += 8) {
+			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+				availableMoves.push_back(pos + i);
+			}
+			else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+				availableMoves.push_back(pos + i);
+				break;
+			}
+			else {
+				break;
+			}
+		}
+		// check up
+		for (int i = 8; pos - i > 0; i += 8) {
+			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+				availableMoves.push_back(pos - i);
+			}
+			else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+				availableMoves.push_back(pos - i);
+				break;
+			}
+			else {
+				break;
+			}
+		}
+		// check left 
+		for (int i = 1; columnRelative + i < 8; i++) {
+			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+				availableMoves.push_back(pos + i);
+			}
+			else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+				availableMoves.push_back(pos + i);
+				break;
+			}
+			else {
+				break;
+			}
+		}
+		// check right
+		for (int i = 1; i <= columnRelative; i++) {
+			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+				availableMoves.push_back(pos - i);
+			}
+			else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+				availableMoves.push_back(pos - i);
+				break;
+			}
+			else {
+				break;
+			}
 		}
 	}
-	if (this->location->getLocation() % 8 == 7) {
-		if ((location - 1)->isEmpty() && (location - 2)->isEmpty()) {
-			return true;
-		}
-	}
-	return false;
-}
-
-void Rook::disableCastling() {
-	castPossible = false;
-}
-
-void Rook::castling() {
-	if (this->castlingPossible()) {
-		if (this->location->getLocation() % 8 == 0) {
-			this->move(this->location + 3);
-		}
-		if (this->location->getLocation() % 8 == 7) {
-			this->move(this->location - 2);
-		}
-	}
-	cout << "Castling is not possible" << endl;
-}
-
-
-
-
+};
 
 class King : public ChessPiece {
 private:
-	bool castPossible;
+	bool is_friendly(Square* b, int here) {
+		if (b[here].getPiece()->getColor() == color) {
+			return true;
+		}
+		return false;
+	}
 public:
-	King();
-	King(char, Square*);
-	~King();
-	void move(Square*);
-	vector<Square*> tilesMovable();
-	bool castlingPossible(Rook*);
-	void disableCastling();
-	void castling(Rook*);
+
+	King(char c) {
+		color = c;
+		pieceLetter = 'K';
+	}
+	~King() {}
+
+	void move(Square* b, int initialPositionOfPiece, int finalPositionOfPiece) {
+		if (!inVectorTM(finalPositionOfPiece)) {
+			cout << "Could not move to location" << endl;
+			return;
+		}
+		// Now the move is definetly available
+
+		if (!b[finalPositionOfPiece].is_empty()) {
+			delete b[finalPositionOfPiece].getPiece();
+		}
+
+		b[finalPositionOfPiece].setPiece(b[initialPositionOfPiece].getPiece());
+		b[initialPositionOfPiece].setPiece(nullptr);
+	}
+
+	void updateMoves(Square* b, int pos) {
+		availableMoves.clear();
+
+		
+		int columnRelative;
+		columnRelative = pos % 8;
+
+		// check one up
+		int i = 8;
+		if (pos + i < 64) {
+			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+				availableMoves.push_back(pos + i);
+			}
+			else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+				availableMoves.push_back(pos + i);
+			}
+		}
+		// check one down
+		if (pos - i > 0) {
+			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+				availableMoves.push_back(pos - i);
+			}
+			else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+				availableMoves.push_back(pos - i);
+			}
+		}
+		// check right
+		i = 1;
+		if (columnRelative + i < 64) {
+			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+				availableMoves.push_back(pos + i);
+			}
+			else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+				availableMoves.push_back(pos + i);
+			}
+		}
+		// check left
+		/*if (i < columnRelative) {*/
+		if (columnRelative > i) {
+			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+				availableMoves.push_back(pos - i);
+			}
+			else if (!outOfBounds(pos - i) && !is_friendly(b,pos-i)) {
+			
+				availableMoves.push_back(pos - i);
+			}
+		}
+		/////////////////////////////////////////
+		// in front is 8
+		// left/front is 7
+		// right/front is 9
 
 
-	virtual void move(Square*, int, int) {};
-	virtual void updateMoves(Square*, int) {};
-	virtual void printMoves() {};
+		// top left
+		i = 7;
+		if (pos + i < 64) {
+			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+				availableMoves.push_back(pos + i);
+			}
+			else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+				availableMoves.push_back(pos + i);
+			}
+		}
+		// bottom right
+		if (pos - i > 0) {
+			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+				availableMoves.push_back(pos - i);
+			}
+			else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+				availableMoves.push_back(pos - i);
+			}
+		}
+		// top right
+		i = 9;
+		if (pos + i < 64) {
+			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+				availableMoves.push_back(pos + i);
+			}
+			else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+				availableMoves.push_back(pos + i);
+			}
+		}
+		// bottom left
+		if (pos - i > 0) {
+			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+				availableMoves.push_back(pos - i);
+			}
+			else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+				availableMoves.push_back(pos - i);
+			}
+		}
+
+
+
+	}
 };
 
-King::King() {
-	this->color = 0;
-	this->location = NULL;
-	this->pieceLetter = 'K';
-	this->castPossible = 1;
-}
+class Bishop : public ChessPiece {
+private:
+	bool is_friendly(Square* b, int here) {
+		if (b[here].getPiece()->getColor() == color) {
+			return true;
+		}
+		return false;
+	}
+public:
 
-King::King(char side, Square* loc) {
-	this->color = side;
-	this->location = loc;
-	this->pieceLetter = 'K';
-	this->castPossible = 1;
-}
+	Bishop(char c) {
+		color = c;
+		pieceLetter = 'B';
+	}
+	~Bishop() {}
 
-vector<Square*> King::tilesMovable() {
-	vector<Square*> availTiles;
-	bool edgeRight = 0;
-	bool edgeLeft = 0;
-	bool edgeTop = 0;
-	bool edgeBottom = 0;
-	if (this->location->getLocation() % 8 == 1) {
-		edgeRight = 1;
+	void move(Square* b, int initialPositionOfPiece, int finalPositionOfPiece) {
+		if (!inVectorTM(finalPositionOfPiece)) {
+			cout << "Could not move to location" << endl;
+			return;
+		}
+		// Now the move is definetly available
+
+		if (!b[finalPositionOfPiece].is_empty()) {
+			delete b[finalPositionOfPiece].getPiece();
+		}
+
+		b[finalPositionOfPiece].setPiece(b[initialPositionOfPiece].getPiece());
+		b[initialPositionOfPiece].setPiece(nullptr);
 	}
-	if (this->location->getLocation() % 8 == 0) {
-		edgeLeft = 1;
-	}
-	if (this->location->getLocation() <= 7) {
-		edgeTop = 1;
-	}
-	if (this->location->getLocation() >= 56) {
-		edgeBottom = 1;
-	}
-	Square* tileChecked = this->location;
-	if (edgeTop == 0) {
-		tileChecked = this->location - 9;
-		for (int i = 0; i < 3; i++) {
-			if (tileChecked->isEmpty() == true || tileChecked->getPieceID()->getColor() != this->getColor()) {
-				availTiles.push_back(tileChecked);
+	void updateMoves(Square* b, int pos) {
+		availableMoves.clear();
+
+		int columnRelative;
+		columnRelative = pos % 8;
+
+		int counter = 0;
+
+		// check top left
+		for (int i = 7; pos + i < 64; i += 7) {
+			counter++;
+			if (columnRelative == 0) {
+				break;
+			}
+			if (counter > columnRelative) {
+				break;
+			}
+			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+				availableMoves.push_back(pos + i);
+			}
+			else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+				availableMoves.push_back(pos + i);
+				break;
 			}
 			else {
-				continue;
+				break;
 			}
-			tileChecked++;
 		}
-	}
-	if (edgeLeft == 0) {
-		tileChecked = this->location - 1;
-		if (tileChecked->isEmpty() == true || tileChecked->getPieceID()->getColor() != this->getColor()) {
-			availTiles.push_back(tileChecked);
-		}
-	}
-	if (edgeRight == 0) {
-		tileChecked = this->location + 1;
-		if (tileChecked->isEmpty() == true || tileChecked->getPieceID()->getColor() != this->getColor()) {
-			availTiles.push_back(tileChecked);
-		}
-	}
-	if (edgeBottom == 0) {
-		tileChecked = this->location + 7;
-		for (int j = 0; j < 3; j++) {
-			if (tileChecked->isEmpty() == true || tileChecked->getPieceID()->getColor() != this->getColor()) {
-				availTiles.push_back(tileChecked);
+		// check bottom right
+		counter = 0;
+		for (int i = 7; pos - i > 0; i += 7) {
+			counter++;
+			if (columnRelative == 8) {
+				break;
+			}
+			if (counter >= 8 - columnRelative) {
+				break;
+			}
+			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+				availableMoves.push_back(pos - i);
+			}
+			else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+				availableMoves.push_back(pos - i);
+				break;
 			}
 			else {
-				continue;
+				break;
 			}
-			tileChecked++;
+		}
+		counter = 0;
+		// check top right
+		for (int i = 9; pos + i < 64; i += 9) {
+			counter++;
+			if (columnRelative == 8) {
+				break;
+			}
+			if (counter >= 8 - columnRelative) {
+				break;
+			}
+			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+				availableMoves.push_back(pos + i);
+			}
+			else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+				availableMoves.push_back(pos + i);
+				break;
+			}
+			else {
+				break;
+			}
+		}
+		counter = 0;
+		// check bottom left
+		for (int i = 9; pos - i > 0; i += 9) {
+			counter++;
+			if (columnRelative == 0) {
+				break;
+			}
+			if (counter >= columnRelative) {
+				break;
+			}
+			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+				availableMoves.push_back(pos - i);
+			}
+			else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+				availableMoves.push_back(pos - i);
+				break;
+			}
+			else {
+				break;
+			}
 		}
 	}
-	cout << "Available tiles:";
-	for (int k = 0; k < availTiles.size(); k++) {
-		//cout << " " << availTiles.at(k)->printLocation();
-		cout << " ";
-		availTiles.at(k)->printLocation();
-	}
-	cout << '\n';
-	return availTiles;
-}
+};
 
-void King::move(Square* targetTile) {
-	vector<Square*> availTiles = this->tilesMovable();
-	for (int i = 0; i < availTiles.size(); i++) {
-		if (targetTile == availTiles.at(i)) {
-			targetTile->clearSquare();
-				location->clearSquare();
-				location = targetTile;
-				location->setPiece(this);
-				this->castPossible = false;
-				return;
+class Queen : public ChessPiece {
+private:
+	bool is_friendly(Square* b, int here) {
+		if (b[here].getPiece()->getColor() == color) {
+			return true;
+		}
+		return false;
+	}
+public:
+
+	Queen(char c) {
+		color = c;
+		pieceLetter = 'Q';
+	}
+	~Queen() {}
+
+	void move(Square* b, int initialPositionOfPiece, int finalPositionOfPiece) {
+		if (!inVectorTM(finalPositionOfPiece)) {
+			cout << "Could not move to location" << endl;
+			return;
+		}
+		// Now the move is definetly available
+
+		if (!b[finalPositionOfPiece].is_empty()) {
+			delete b[finalPositionOfPiece].getPiece();
+		}
+
+		b[finalPositionOfPiece].setPiece(b[initialPositionOfPiece].getPiece());
+		b[initialPositionOfPiece].setPiece(nullptr);
+	}
+	void updateMoves(Square* b, int pos) {
+		availableMoves.clear();
+
+		int columnRelative;
+		columnRelative = pos % 8;
+
+		int counter = 0;
+
+		// check top left
+		for (int i = 7; pos + i < 64; i += 7) {
+			counter++;
+			if (columnRelative == 0) {
+				break;
+			}
+			if (counter > columnRelative) {
+				break;
+			}
+			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+				availableMoves.push_back(pos + i);
+			}
+			else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+				availableMoves.push_back(pos + i);
+				break;
+			}
+			else {
+				break;
+			}
+		}
+		// check bottom right
+		counter = 0;
+		for (int i = 7; pos - i > 0; i += 7) {
+			counter++;
+			if (columnRelative == 8) {
+				break;
+			}
+			if (counter >= 8 - columnRelative) {
+				break;
+			}
+			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+				availableMoves.push_back(pos - i);
+			}
+			else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+				availableMoves.push_back(pos - i);
+				break;
+			}
+			else {
+				break;
+			}
+		}
+		counter = 0;
+		// check top right
+		for (int i = 9; pos + i < 64; i += 9) {
+			counter++;
+			if (columnRelative == 8) {
+				break;
+			}
+			if (counter >= 8 - columnRelative) {
+				break;
+			}
+			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+				availableMoves.push_back(pos + i);
+			}
+			else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+				availableMoves.push_back(pos + i);
+				break;
+			}
+			else {
+				break;
+			}
+		}
+		counter = 0;
+		// check bottom left
+		for (int i = 9; pos - i > 0; i += 9) {
+			counter++;
+			if (columnRelative == 0) {
+				break;
+			}
+			if (counter >= columnRelative) {
+				break;
+			}
+			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+				availableMoves.push_back(pos - i);
+			}
+			else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+				availableMoves.push_back(pos - i);
+				break;
+			}
+			else {
+				break;
+			}
+		}
+
+
+		///////////////////////////////////////////////////////////////////
+
+		// check down
+		for (int i = 8; pos + i < 64; i += 8) {
+			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+				availableMoves.push_back(pos + i);
+			}
+			else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+				availableMoves.push_back(pos + i);
+				break;
+			}
+			else {
+				break;
+			}
+		}
+		// check up
+		for (int i = 8; pos - i > 0; i += 8) {
+			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+				availableMoves.push_back(pos - i);
+			}
+			else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+				availableMoves.push_back(pos - i);
+				break;
+			}
+			else {
+				break;
+			}
+		}
+		// check left 
+		for (int i = 1; columnRelative + i < 8; i++) {
+			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+				availableMoves.push_back(pos + i);
+			}
+			else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+				availableMoves.push_back(pos + i);
+				break;
+			}
+			else {
+				break;
+			}
+		}
+		// check right
+		for (int i = 1; i <= columnRelative; i++) {
+			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+				availableMoves.push_back(pos - i);
+			}
+			else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+				availableMoves.push_back(pos - i);
+				break;
+			}
+			else {
+				break;
+			}
 		}
 	}
-	cout << "Can't move to this square." << endl;
-}
+};
 
-bool King::castlingPossible(Rook* castle) {
-	if (this->castPossible) {
-		return castle->castlingPossible();
-	}
-	return false;
-}
-
-void King::disableCastling() {
-	this->castPossible = false;
-}
-
-void King::castling(Rook* castle) {
-	if (castle->castlingPossible()) {
-		if (castle->getLocationSquareRook()->getLocation() % 8 == 0) {
-			Square* defense = this->location - 2;
-			this->location->clearSquare();
-			location = defense;
-			location->setPiece(this);
-			this->castPossible = false;
+class Knight : public ChessPiece {
+private:
+	bool is_friendly(Square* b, int here) {
+		if (b[here].getPiece()->getColor() == color) {
+			return true;
 		}
-		if (castle->getLocationSquareRook()->getLocation() % 8 == 7) {
-			Square* defense = this->location + 2;
-			this->location->clearSquare();
-			location = defense;
-			location->setPiece(this);
-			this->castPossible = false;
-		}
+		return false;
 	}
-	cout << "Castling not possible" << endl;
-}
+public:
+
+	Knight(char c) {
+		color = c;
+		pieceLetter = 'L';
+	}
+	~Knight() {}
+
+	void move(Square* b, int initialPositionOfPiece, int finalPositionOfPiece) {
+		if (!inVectorTM(finalPositionOfPiece)) {
+			cout << "Could not move to location" << endl;
+			return;
+		}
+		// Now the move is definetly available
+
+		if (!b[finalPositionOfPiece].is_empty()) {
+			delete b[finalPositionOfPiece].getPiece();
+		}
+
+		b[finalPositionOfPiece].setPiece(b[initialPositionOfPiece].getPiece());
+		b[initialPositionOfPiece].setPiece(nullptr);
+	}
+
+	void updateMoves(Square* b, int pos) {
+		availableMoves.clear();
+
+		/*bool onLeftEdge = pos % 8 == 0;
+		bool onRightEdge = (pos - 7) % 8 == 0;*/
 
 
+		if (!outOfBounds(pos + UP + UP + LEFT) && !(pos >= 0 && pos <= 15) && !(pos % 8 == 0)) {
+			if (b[pos + UP + UP + LEFT].is_empty() || !is_friendly(b, pos + UP + UP + LEFT)) {
+				availableMoves.push_back(pos + UP + UP + LEFT);
+			}
+		}
+		if (!outOfBounds(pos + UP + UP + RIGHT) && !(pos >= 0 && pos <= 15) && !((pos - 7) % 8 == 0)) {
+			if (b[pos + UP + UP + RIGHT].is_empty() || !is_friendly(b, pos + UP + UP + RIGHT)) {
+				availableMoves.push_back(pos + UP + UP + RIGHT);
+			}
+		}
+		if (!outOfBounds(pos + LEFT + LEFT + UP) && !((pos - 1) % 8 == 0) && !(pos % 8 == 0) && !(pos >= 0 && pos <= 7)) {
+			if (b[pos + LEFT + LEFT + UP].is_empty() || !is_friendly(b, pos + LEFT + LEFT + UP)) {
+				availableMoves.push_back(pos + LEFT + LEFT + UP);
+			}
+		}
+		if (!outOfBounds(pos + LEFT + LEFT + DOWN) && !((pos - 1) % 8 == 0) && !(pos % 8 == 0) && !(pos >= 56 && pos <= 63)) {
+			if(b[pos + LEFT + LEFT + DOWN].is_empty() || !is_friendly(b, pos + LEFT + LEFT + DOWN)) {
+				availableMoves.push_back(pos + LEFT + LEFT + DOWN);
+			}
+		}
+		if (!outOfBounds(pos + RIGHT + RIGHT + UP) && !((pos - 6) % 8 == 0) && !(pos >= 0 && pos <= 7)) {
+			if (b[pos + RIGHT + RIGHT + UP].is_empty() || !is_friendly(b, pos + RIGHT + RIGHT + UP)) {
+				availableMoves.push_back(pos + RIGHT + RIGHT + UP);
+			}
+		}
+		if (!outOfBounds(pos + RIGHT + RIGHT + DOWN) && !((pos - 6) % 8 == 0) && !(pos >= 56 && pos <= 63)) {
+			if (b[pos + RIGHT + RIGHT + DOWN].is_empty() || !is_friendly(b, pos + RIGHT + RIGHT + DOWN)) {
+				availableMoves.push_back(pos + RIGHT + RIGHT + DOWN);
+			}
+		}
+		if (!outOfBounds(pos + DOWN + DOWN + LEFT) && !(pos >= 48 && pos <= 63) && !(pos % 8 == 0)) {
+			if (b[pos + DOWN + DOWN + LEFT].is_empty() || !is_friendly(b, pos + DOWN + DOWN + LEFT)) {
+				availableMoves.push_back(pos + DOWN + DOWN + LEFT);
+			}
+		}
+		if (!outOfBounds(pos + DOWN + DOWN + RIGHT) && !(pos >= 48 && pos <= 63) && !((pos - 7) % 8 == 0)) {
+			if (b[pos + DOWN + DOWN + RIGHT].is_empty() || !is_friendly(b, pos + DOWN + DOWN + RIGHT)) {
+				availableMoves.push_back(pos + DOWN + DOWN + RIGHT);
+			}
+		}
+
+		
+
+
+		//int columnRelative;
+		//columnRelative = pos % 8;
+
+		//// check one up
+		//int i = 8;
+		//if (pos + i < 64) {
+		//	if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+		//		availableMoves.push_back(pos + i);
+		//	}
+		//	else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+		//		availableMoves.push_back(pos + i);
+		//	}
+		//}
+		//// check one down
+		//if (pos - i > 0) {
+		//	if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+		//		availableMoves.push_back(pos - i);
+		//	}
+		//	else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+		//		availableMoves.push_back(pos - i);
+		//	}
+		//}
+		//// check right
+		//i = 1;
+		//if (columnRelative + i < 64) {
+		//	if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+		//		availableMoves.push_back(pos + i);
+		//	}
+		//	else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+		//		availableMoves.push_back(pos + i);
+		//	}
+		//}
+		//// check left
+		//
+		//if (columnRelative > i) {
+		//	if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+		//		availableMoves.push_back(pos - i);
+		//	}
+		//	else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+
+		//		availableMoves.push_back(pos - i);
+		//	}
+		//}
+		///////////////////////////////////////////
+		//// in front is 8
+		//// left/front is 7
+		//// right/front is 9
+
+
+		//// top left
+		//i = 7;
+		//if (pos + i < 64) {
+		//	if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+		//		availableMoves.push_back(pos + i);
+		//	}
+		//	else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+		//		availableMoves.push_back(pos + i);
+		//	}
+		//}
+		//// bottom right
+		//if (pos - i > 0) {
+		//	if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+		//		availableMoves.push_back(pos - i);
+		//	}
+		//	else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+		//		availableMoves.push_back(pos - i);
+		//	}
+		//}
+		//// top right
+		//i = 9;
+		//if (pos + i < 64) {
+		//	if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
+		//		availableMoves.push_back(pos + i);
+		//	}
+		//	else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
+		//		availableMoves.push_back(pos + i);
+		//	}
+		//}
+		//// bottom left
+		//if (pos - i > 0) {
+		//	if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
+		//		availableMoves.push_back(pos - i);
+		//	}
+		//	else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
+		//		availableMoves.push_back(pos - i);
+		//	}
+		//}
+
+
+
+	}
+};
 
 
 class Chessboard {
@@ -703,25 +980,47 @@ public:
 
 		//initialize entire row with black pawn
 		for (int i = COL1; i <= COL8; ++i) {
-			Board[ROW4 + i].setPiece(new Pawn('B',Board,ROW4+i));
+			Board[ROW2 + i].setPiece(new Pawn('B'));
 		}
 		//initialize entire row with white pawn
 		for (int i = COL1; i <= COL8; ++i) {
-			Board[ROW7 + i].setPiece(new Pawn('W', Board, ROW7 + i));
+			Board[ROW7 + i].setPiece(new Pawn('W'));
 		}
-
-
 		
-		/*Board[ROW2 + 3].setPiece(new King('B', &Board[ROW2 + 3]));
-		Board[ROW1 + 3].setPiece(new Rook('B', &Board[ROW1 + 3]));*/
+		Board[0].setPiece(new Rook('B'));
+		Board[7].setPiece(new Rook('B'));
+		Board[56].setPiece(new Rook('W'));
+		Board[63].setPiece(new Rook('W'));
 
-		Board[0].setPiece(new Rook('W', &Board[0]));
-		Board[7].setPiece(new Rook('W', &Board[7]));
-		Board[3].setPiece(new King('W', &Board[3]));
+		Board[1].setPiece(new Knight('B'));
+		Board[6].setPiece(new Knight('B'));
+		Board[57].setPiece(new Knight('W'));
+		Board[62].setPiece(new Knight('W'));
+
+		Board[2].setPiece(new Bishop('B'));
+		Board[5].setPiece(new Bishop('B'));
+		Board[58].setPiece(new Bishop('W'));
+		Board[61].setPiece(new Bishop('W'));
+
+		Board[3].setPiece(new Queen('B'));
+		Board[59].setPiece(new Queen('W'));
+
+		Board[4].setPiece(new King('B'));
+		Board[60].setPiece(new King('W'));
+		
+
+		//Board[1].setPiece(new Pawn('B'));
+		//Board[10].setPiece(new Pawn('B'));
+		///*Board[0].setPiece(new Rook('W'));
+		//Board[7].setPiece(new Rook('W'));*/
+		//Board[3].setPiece(new King('W'));
+		//Board[20].setPiece(new Bishop('W'));
+		//Board[30].setPiece(new Queen('W'));
+		//Board[40].setPiece(new Knight('B'));
 		//Black pieces
-		Board[56].setPiece(new Rook('B', &Board[56]));
-		Board[63].setPiece(new Rook('B', &Board[63]));
-		Board[59].setPiece(new King('B', &Board[59]));
+		/*Board[56].setPiece(new Rook('B'));
+		Board[63].setPiece(new Rook('B'));
+		Board[59].setPiece(new King('B'));*/
 		
 
 
@@ -758,12 +1057,22 @@ public:
 
 	void printChessBoard() {
 
+		/*for (int i = 0; i < SIZE; ++i) {
+			if (i % 8 == 0 && i != 0) {
+				cout << endl;
+			}
+			if (i == 0 || i == 8) {
+				cout << " ";
+			}
+			cout << i << Board[i].getPieceLetter() << " ";
+			
+		}*/
 		for (int i = 0; i < SIZE; ++i) {
 			if (i % 8 == 0 && i != 0) {
 				cout << endl;
 			}
 			cout << Board[i].getPieceLetter();
-			
+
 		}
 
 	}
@@ -798,7 +1107,7 @@ int main() {
 		b1.printMovesOnSquare(initialPos);
 		cin >> finalPos;
 		b1.move(initialPos, finalPos);
-		b1.getSquare(initialPos)->getPiece()->move(b1.getSquare(finalPos));
+		//b1.getSquare(initialPos)->getPiece()->move(b1.getSquare(finalPos));
 
 
 	}
