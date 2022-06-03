@@ -135,7 +135,7 @@ private:
 	ChessPiece* piece;
 
 
-	ChessPiece* pieceID;
+	//ChessPiece* pieceID;
 	int location;
 
 public:
@@ -201,12 +201,12 @@ void Square::setLocation(int l) {
 Square::Square() {
 	piece = nullptr;
 
-	pieceID = nullptr;
+	//pieceID = nullptr;
 	location = -1;
 }
 
 Square::Square(ChessPiece* piece, int point) {
-	pieceID = piece;
+	piece = piece;
 	location = point;
 }
 
@@ -214,19 +214,17 @@ Square::~Square() {
 	if (piece != nullptr) {
 		delete piece;
 	}
-	if (pieceID != nullptr) {
-		delete pieceID;
-	}
+	
 	
 	//delete this->pieceID;
 }
 
 bool Square::isEmpty() {
-	return (pieceID == nullptr);
+	return (piece == nullptr);
 }
 
 ChessPiece* Square::getPieceID() {
-	return this->pieceID;
+	return this->piece;
 }
 
 int Square::getLocation() {
@@ -238,12 +236,12 @@ void Square::printLocation() {
 }
 
 void Square::clearSquare() {
-	this->pieceID->setLocation(nullptr);
-	pieceID = nullptr;
+	this->piece->setLocation(nullptr);
+	piece = nullptr;
 }
 
 void Square::setPiece(ChessPiece* c) {
-	pieceID = c;
+	piece = c;
 }
 
 
@@ -435,7 +433,7 @@ public:
 
 		//initialize all ROW2 with black pawn
 		for (int i = COL1; i <= COL8; ++i) {
-			Board[ROW4 + i].setPiece(new Pawn('B',Board,ROW2+i));
+			Board[ROW4 + i].setPiece(new Pawn('B',Board,ROW4+i));
 		}
 		//initialize all ROW6 with white pawn
 		for (int i = COL1; i <= COL8; ++i) {
