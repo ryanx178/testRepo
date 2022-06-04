@@ -1,8 +1,5 @@
 // Ryan Lopez 
 
-// problem: I have to update moves every time something on the board moves
-
-
 
 #include <iostream>
 #include <string>
@@ -31,8 +28,11 @@ protected:
 	char pieceLetter;
 	vector<int> availableMoves;
 public:
+	vector<int> getMoves() {
+		return availableMoves;
+	}
 	
-	bool inVectorTM(int x) {
+	bool inVectorAvailableMoves(int x) {
 		for (int i = 0; i < availableMoves.size(); ++i) {
 			if (availableMoves[i] == x) {
 				return true;
@@ -55,8 +55,8 @@ public:
 		return color;
 	}
 
-	virtual void move(Square*,int,int) = 0;
-	virtual void updateMoves(Square*, int) = 0;
+	virtual void move(Square*, int, int) = 0;
+	
 	void printMoves() {
 		for (int i = 0; i < availableMoves.size(); ++i) {
 			cout << availableMoves[i] << " ";
@@ -64,12 +64,9 @@ public:
 		cout << endl;
 	}
 
-	virtual bool is_friendly(Square*, int) = 0;
-
 	
-	//virtual ~ChessPiece() = 0;
-	//virtual void move(Square*) = 0;
-	//virtual vector<int> tilesMovable() = 0;
+	virtual void updateMoves(Square*, int) = 0;
+	virtual bool is_friendly(Square*, int) = 0;
 	
 
 	
@@ -116,24 +113,10 @@ public:
 
 };
 
-
 class Pawn : public ChessPiece {
 private:
-	int prevPosition = -1;
 	int forwardOne = UP;
-	
 	bool hasMoved = false;
-
-
-	
-	/*bool inVectorTM(int x) {
-		for (int i = 0; i < tilesM.size(); ++i) {
-			if (tilesM[i] == x) {
-				return true;
-			}
-		}
-		return false;
-	}*/
 
 	bool is_friendly(Square* b, int here) {
 		if (b[here].getPiece()->getColor() == color) {
@@ -161,12 +144,11 @@ public:
 
 	// Assume that Black is top and White is bottom
 	void move(Square* b, int initialPositionOfPiece, int finalPositionOfPiece) {
-		if (!inVectorTM(finalPositionOfPiece)) {
+		if (!inVectorAvailableMoves(finalPositionOfPiece)) {
 			cout << "Could not move to location" << endl;
 			return;
 		}
 		// Now the move is definetly available
-		prevPosition = initialPositionOfPiece;
 		
 
 
@@ -175,6 +157,7 @@ public:
 		
 		if (!b[finalPositionOfPiece].is_empty()) {
 			delete b[finalPositionOfPiece].getPiece();
+			cout << "Opponent piece captured!" << endl;
 		}
 		
 		b[finalPositionOfPiece].setPiece(b[initialPositionOfPiece].getPiece());
@@ -271,7 +254,7 @@ public:
 	~Rook() {}
 
 	void move(Square* b, int initialPositionOfPiece, int finalPositionOfPiece) {
-		if (!inVectorTM(finalPositionOfPiece)) {
+		if (!inVectorAvailableMoves(finalPositionOfPiece)) {
 			cout << "Could not move to location" << endl;
 			return;
 		}
@@ -279,6 +262,7 @@ public:
 
 		if (!b[finalPositionOfPiece].is_empty()) {
 			delete b[finalPositionOfPiece].getPiece();
+			cout << "Opponent piece captured!" << endl;
 		}
 
 		b[finalPositionOfPiece].setPiece(b[initialPositionOfPiece].getPiece());
@@ -304,7 +288,7 @@ public:
 			}
 		}
 		// check up
-		for (int i = 8; pos - i > 0; i += 8) {
+		for (int i = 8; pos - i >= 0; i += 8) {
 			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
 				availableMoves.push_back(pos - i);
 			}
@@ -354,7 +338,7 @@ private:
 		return false;
 	}
 public:
-
+	
 	King(char c) {
 		color = c;
 		pieceLetter = 'K';
@@ -362,7 +346,7 @@ public:
 	~King() {}
 
 	void move(Square* b, int initialPositionOfPiece, int finalPositionOfPiece) {
-		if (!inVectorTM(finalPositionOfPiece)) {
+		if (!inVectorAvailableMoves(finalPositionOfPiece)) {
 			cout << "Could not move to location" << endl;
 			return;
 		}
@@ -370,6 +354,7 @@ public:
 
 		if (!b[finalPositionOfPiece].is_empty()) {
 			delete b[finalPositionOfPiece].getPiece();
+			cout << "Opponent piece captured!" << endl;
 		}
 
 		b[finalPositionOfPiece].setPiece(b[initialPositionOfPiece].getPiece());
@@ -383,7 +368,7 @@ public:
 		int columnRelative;
 		columnRelative = pos % 8;
 
-		// check one up
+		// check one down
 		int i = 8;
 		if (pos + i < 64) {
 			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
@@ -393,8 +378,8 @@ public:
 				availableMoves.push_back(pos + i);
 			}
 		}
-		// check one down
-		if (pos - i > 0) {
+		// check one up
+		if (pos - i >= 0) {
 			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
 				availableMoves.push_back(pos - i);
 			}
@@ -413,8 +398,7 @@ public:
 			}
 		}
 		// check left
-		/*if (i < columnRelative) {*/
-		if (columnRelative > i) {
+		if (columnRelative >= i) {
 			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
 				availableMoves.push_back(pos - i);
 			}
@@ -431,7 +415,7 @@ public:
 
 		// top left
 		i = 7;
-		if (pos + i < 64) {
+		if (pos + i < 64 && !(pos % 8 == 0)) {
 			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
 				availableMoves.push_back(pos + i);
 			}
@@ -440,7 +424,7 @@ public:
 			}
 		}
 		// bottom right
-		if (pos - i > 0) {
+		if (pos - i >= 0 && !((pos - 7) % 8 == 0)) {
 			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
 				availableMoves.push_back(pos - i);
 			}
@@ -450,7 +434,7 @@ public:
 		}
 		// top right
 		i = 9;
-		if (pos + i < 64) {
+		if (pos + i < 64 && !((pos - 7) % 8 == 0)) {
 			if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
 				availableMoves.push_back(pos + i);
 			}
@@ -459,7 +443,7 @@ public:
 			}
 		}
 		// bottom left
-		if (pos - i > 0) {
+		if (pos - i >= 0 && !(pos % 8 == 0)) {
 			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
 				availableMoves.push_back(pos - i);
 			}
@@ -468,8 +452,114 @@ public:
 			}
 		}
 
+			
+		/*if (inCheck(b,pos)) {
+			if (availableMoves.size() == 0) {
+				cout << "Checkmate! " << color << " wins" << endl;
+			}
+			else {
+				cout << "In check!" << endl;
+			}
+			
+		}*/
+	}
+
+	void removeCheckableMoves(Square* b) {
+		// Check every piece
+		for (int i = 0; i < SIZE; ++i) {
+
+			// if square is not empty and not friendly
+			if (!b[i].is_empty() && !is_friendly(b, i)) {
+
+				// get availableMoves of that piece and compare with king, if there is a matching move then king should delete that option.
+				vector<int> opposingPieceMoves = b[i].getPiece()->getMoves();
+				// Exception for pawn class
+				
+				if (b[i].getPieceLetter() == 'P') {
+					opposingPieceMoves.clear();
+					if (b[i].getPiece()->getColor() == 'W' && color == 'B') {
+						if (b[i + UP + LEFT].is_empty()) {
+							opposingPieceMoves.push_back(i + UP + LEFT);
+						}
+						if (b[i + UP + RIGHT].is_empty()) {
+							opposingPieceMoves.push_back(i + UP + RIGHT);
+						}
+					}
+					else if (b[i].getPiece()->getColor() == 'B' && color == 'W') {
+						if (b[i + DOWN + LEFT].is_empty()) {
+							opposingPieceMoves.push_back(i + DOWN + LEFT);
+						}
+						
+						if (b[i + DOWN + RIGHT].is_empty()) {
+							opposingPieceMoves.push_back(i + DOWN + RIGHT);
+						}
+						
+					}
+				}
 
 
+
+				// For every move in opposing piece it should check every move in king. If a match then it erases that
+				for (int j = 0; j < opposingPieceMoves.size(); ++j) {
+					for (int k = 0; k < availableMoves.size(); ++k) {
+						if (opposingPieceMoves[j] == availableMoves[k]) {
+							// delete move from king
+							availableMoves.erase(availableMoves.begin() + k);
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+
+	bool inCheck(Square* b, int initialPos) {
+		vector<int> opposingPieceMoves;
+
+		// Checks every opponent piece moves and determines if they contain the position of the King
+		for (int i = 0; i < SIZE; ++i) {
+
+			if (!b[i].is_empty() && !is_friendly(b, i)) {
+				opposingPieceMoves = b[i].getPiece()->getMoves();
+
+
+
+				// Exception for pawn class
+				if (b[i].getPieceLetter() == 'P') {
+					opposingPieceMoves.clear();
+					if (b[i].getPiece()->getColor() == 'W' && color == 'B') {
+						if (b[i + UP + LEFT].is_empty()) {
+							opposingPieceMoves.push_back(i + UP + LEFT);
+						}
+						if (b[i + UP + RIGHT].is_empty()) {
+							opposingPieceMoves.push_back(i + UP + RIGHT);
+						}
+					}
+					else if (b[i].getPiece()->getColor() == 'B' && color == 'W') {
+						if (b[i + DOWN + LEFT].is_empty()) {
+							opposingPieceMoves.push_back(i + DOWN + LEFT);
+						}
+
+						if (b[i + DOWN + RIGHT].is_empty()) {
+							opposingPieceMoves.push_back(i + DOWN + RIGHT);
+						}
+
+					}
+				}
+
+
+				for (int j = 0; j < opposingPieceMoves.size(); ++j) {
+					if (opposingPieceMoves[j] == initialPos) {
+						return true;
+					}
+				}
+
+			}
+		}
+
+
+		return false;
 	}
 };
 
@@ -490,7 +580,7 @@ public:
 	~Bishop() {}
 
 	void move(Square* b, int initialPositionOfPiece, int finalPositionOfPiece) {
-		if (!inVectorTM(finalPositionOfPiece)) {
+		if (!inVectorAvailableMoves(finalPositionOfPiece)) {
 			cout << "Could not move to location" << endl;
 			return;
 		}
@@ -498,6 +588,7 @@ public:
 
 		if (!b[finalPositionOfPiece].is_empty()) {
 			delete b[finalPositionOfPiece].getPiece();
+			cout << "Opponent piece captured!" << endl;
 		}
 
 		b[finalPositionOfPiece].setPiece(b[initialPositionOfPiece].getPiece());
@@ -511,7 +602,7 @@ public:
 
 		int counter = 0;
 
-		// check top left
+		// check bottom left
 		for (int i = 7; pos + i < 64; i += 7) {
 			counter++;
 			if (columnRelative == 0) {
@@ -531,9 +622,9 @@ public:
 				break;
 			}
 		}
-		// check bottom right
+		// check top right
 		counter = 0;
-		for (int i = 7; pos - i > 0; i += 7) {
+		for (int i = 7; pos - i >= 0; i += 7) {
 			counter++;
 			if (columnRelative == 8) {
 				break;
@@ -553,7 +644,7 @@ public:
 			}
 		}
 		counter = 0;
-		// check top right
+		// check bottom right
 		for (int i = 9; pos + i < 64; i += 9) {
 			counter++;
 			if (columnRelative == 8) {
@@ -574,13 +665,13 @@ public:
 			}
 		}
 		counter = 0;
-		// check bottom left
-		for (int i = 9; pos - i > 0; i += 9) {
+		// check top left
+		for (int i = 9; pos - i >= 0; i += 9) {
 			counter++;
 			if (columnRelative == 0) {
 				break;
 			}
-			if (counter >= columnRelative) {
+			if (counter > columnRelative) {				////////// took out =
 				break;
 			}
 			if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
@@ -614,7 +705,7 @@ public:
 	~Queen() {}
 
 	void move(Square* b, int initialPositionOfPiece, int finalPositionOfPiece) {
-		if (!inVectorTM(finalPositionOfPiece)) {
+		if (!inVectorAvailableMoves(finalPositionOfPiece)) {
 			cout << "Could not move to location" << endl;
 			return;
 		}
@@ -622,6 +713,7 @@ public:
 
 		if (!b[finalPositionOfPiece].is_empty()) {
 			delete b[finalPositionOfPiece].getPiece();
+			cout << "Opponent piece captured!" << endl;
 		}
 
 		b[finalPositionOfPiece].setPiece(b[initialPositionOfPiece].getPiece());
@@ -794,7 +886,7 @@ public:
 	~Knight() {}
 
 	void move(Square* b, int initialPositionOfPiece, int finalPositionOfPiece) {
-		if (!inVectorTM(finalPositionOfPiece)) {
+		if (!inVectorAvailableMoves(finalPositionOfPiece)) {
 			cout << "Could not move to location" << endl;
 			return;
 		}
@@ -802,6 +894,7 @@ public:
 
 		if (!b[finalPositionOfPiece].is_empty()) {
 			delete b[finalPositionOfPiece].getPiece();
+			cout << "Opponent piece captured!" << endl;
 		}
 
 		b[finalPositionOfPiece].setPiece(b[initialPositionOfPiece].getPiece());
@@ -835,12 +928,12 @@ public:
 				availableMoves.push_back(pos + LEFT + LEFT + DOWN);
 			}
 		}
-		if (!outOfBounds(pos + RIGHT + RIGHT + UP) && !((pos - 6) % 8 == 0) && !(pos >= 0 && pos <= 7)) {
+		if (!outOfBounds(pos + RIGHT + RIGHT + UP) && !((pos - 6) % 8 == 0) && !((pos - 7) % 8 == 0) && !(pos >= 0 && pos <= 7)) {
 			if (b[pos + RIGHT + RIGHT + UP].is_empty() || !is_friendly(b, pos + RIGHT + RIGHT + UP)) {
 				availableMoves.push_back(pos + RIGHT + RIGHT + UP);
 			}
 		}
-		if (!outOfBounds(pos + RIGHT + RIGHT + DOWN) && !((pos - 6) % 8 == 0) && !(pos >= 56 && pos <= 63)) {
+		if (!outOfBounds(pos + RIGHT + RIGHT + DOWN) && !((pos - 6) % 8 == 0) && !((pos - 7) % 8 == 0) && !(pos >= 56 && pos <= 63)) {
 			if (b[pos + RIGHT + RIGHT + DOWN].is_empty() || !is_friendly(b, pos + RIGHT + RIGHT + DOWN)) {
 				availableMoves.push_back(pos + RIGHT + RIGHT + DOWN);
 			}
@@ -856,101 +949,11 @@ public:
 			}
 		}
 
-		
-
-
-		//int columnRelative;
-		//columnRelative = pos % 8;
-
-		//// check one up
-		//int i = 8;
-		//if (pos + i < 64) {
-		//	if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
-		//		availableMoves.push_back(pos + i);
-		//	}
-		//	else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
-		//		availableMoves.push_back(pos + i);
-		//	}
-		//}
-		//// check one down
-		//if (pos - i > 0) {
-		//	if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
-		//		availableMoves.push_back(pos - i);
-		//	}
-		//	else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
-		//		availableMoves.push_back(pos - i);
-		//	}
-		//}
-		//// check right
-		//i = 1;
-		//if (columnRelative + i < 64) {
-		//	if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
-		//		availableMoves.push_back(pos + i);
-		//	}
-		//	else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
-		//		availableMoves.push_back(pos + i);
-		//	}
-		//}
-		//// check left
-		//
-		//if (columnRelative > i) {
-		//	if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
-		//		availableMoves.push_back(pos - i);
-		//	}
-		//	else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
-
-		//		availableMoves.push_back(pos - i);
-		//	}
-		//}
-		///////////////////////////////////////////
-		//// in front is 8
-		//// left/front is 7
-		//// right/front is 9
-
-
-		//// top left
-		//i = 7;
-		//if (pos + i < 64) {
-		//	if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
-		//		availableMoves.push_back(pos + i);
-		//	}
-		//	else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
-		//		availableMoves.push_back(pos + i);
-		//	}
-		//}
-		//// bottom right
-		//if (pos - i > 0) {
-		//	if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
-		//		availableMoves.push_back(pos - i);
-		//	}
-		//	else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
-		//		availableMoves.push_back(pos - i);
-		//	}
-		//}
-		//// top right
-		//i = 9;
-		//if (pos + i < 64) {
-		//	if (!outOfBounds(pos + i) && b[pos + i].is_empty()) {
-		//		availableMoves.push_back(pos + i);
-		//	}
-		//	else if (!outOfBounds(pos + i) && !is_friendly(b, pos + i)) {
-		//		availableMoves.push_back(pos + i);
-		//	}
-		//}
-		//// bottom left
-		//if (pos - i > 0) {
-		//	if (!outOfBounds(pos - i) && b[pos - i].is_empty()) {
-		//		availableMoves.push_back(pos - i);
-		//	}
-		//	else if (!outOfBounds(pos - i) && !is_friendly(b, pos - i)) {
-		//		availableMoves.push_back(pos - i);
-		//	}
-		//}
-
-
-
 	}
+
 };
+
+
 
 
 class Chessboard {
@@ -962,6 +965,46 @@ private:
 		for (int i = 0; i < SIZE; ++i) {
 			if (!Board[i].is_empty()) {
 				Board[i].getPiece()->updateMoves(Board,i);
+			}
+		}
+
+		// for removing the moves that cause the king check
+		for (int i = 0; i < SIZE; ++i) {
+			if (!Board[i].is_empty() && Board[i].getPieceLetter() == 'K') {
+				King* k = dynamic_cast<King*>(Board[i].getPiece());
+				k->removeCheckableMoves(Board);
+				
+
+
+
+				// check for condition if a piece moves, will it still result in check?
+
+				if (k->inCheck(Board, i)) {
+					if (k->getMoves().empty()) {
+						cout << "Checkmate! " << k->getColor() << " wins" << endl;
+					}
+					else {
+						cout << "In check!" << endl;
+						// check all teammate pieces
+						//	- if that piece moves onto another square will the king still remain in check?
+
+
+
+
+						//Square* imaginaryBoard = new Square[SIZE];
+
+						//for (int i = 0; i < SIZE; ++i) {
+						//	// delete teammate available moves and give them moves that will help king avoid check
+						//}
+
+
+
+
+
+
+					}
+
+				}
 			}
 		}
 	}
@@ -987,55 +1030,62 @@ public:
 			Board[ROW7 + i].setPiece(new Pawn('W'));
 		}
 		
-		Board[0].setPiece(new Rook('B'));
-		Board[7].setPiece(new Rook('B'));
-		Board[56].setPiece(new Rook('W'));
-		Board[63].setPiece(new Rook('W'));
+		// Rook
+		{
+			Board[0].setPiece(new Rook('B'));
+			Board[7].setPiece(new Rook('B'));
+			Board[56].setPiece(new Rook('W'));
+			Board[63].setPiece(new Rook('W'));
+		}
 
-		Board[1].setPiece(new Knight('B'));
-		Board[6].setPiece(new Knight('B'));
-		Board[57].setPiece(new Knight('W'));
-		Board[62].setPiece(new Knight('W'));
+		// Knight
+		{
+			Board[1].setPiece(new Knight('B'));
+			Board[6].setPiece(new Knight('B'));
+			Board[57].setPiece(new Knight('W'));
+			Board[62].setPiece(new Knight('W'));
+		}
 
-		Board[2].setPiece(new Bishop('B'));
-		Board[5].setPiece(new Bishop('B'));
-		Board[58].setPiece(new Bishop('W'));
-		Board[61].setPiece(new Bishop('W'));
+		// Bishop
+		{
+			Board[2].setPiece(new Bishop('B'));
+			Board[5].setPiece(new Bishop('B'));
+			Board[58].setPiece(new Bishop('W'));
+			Board[61].setPiece(new Bishop('W'));
+		}
 
-		Board[3].setPiece(new Queen('B'));
-		Board[59].setPiece(new Queen('W'));
+		// Queen
+		{
+			Board[3].setPiece(new Queen('B'));
+			Board[59].setPiece(new Queen('W'));
+		}
 
-		Board[4].setPiece(new King('B'));
-		Board[60].setPiece(new King('W'));
-		
-
-		//Board[1].setPiece(new Pawn('B'));
-		//Board[10].setPiece(new Pawn('B'));
-		///*Board[0].setPiece(new Rook('W'));
-		//Board[7].setPiece(new Rook('W'));*/
-		//Board[3].setPiece(new King('W'));
-		//Board[20].setPiece(new Bishop('W'));
-		//Board[30].setPiece(new Queen('W'));
-		//Board[40].setPiece(new Knight('B'));
-		//Black pieces
-		/*Board[56].setPiece(new Rook('B'));
-		Board[63].setPiece(new Rook('B'));
-		Board[59].setPiece(new King('B'));*/
-		
+		// King
+		{
+			Board[4].setPiece(new King('B'));
+			Board[60].setPiece(new King('W'));
+		}
 
 
+		/*Board[10].setPiece(new Pawn('W'));
+		Board[24].setPiece(new King('B'));
+
+		Board[35].setPiece(new Bishop('W'));*/
+
+
+		updateAll();
 	}
 	~Chessboard() {
+		/*for (int i = 0; i < SIZE; ++i) {
+			if (!Board[i].is_empty()) {
+				delete Board[i].getPiece();
+			}
+		}*/
 		delete[] Board;
 	}
 
-	
-
-	//could it be a bool function?
 	void move(int initialPositionOfPiece, int finalPositionOfPiece) {
-		updateAll();
-		//8a is 00
-		//1h is 77
+		
 		if (!Board[initialPositionOfPiece].is_empty()) {
 			Board[initialPositionOfPiece].getPiece()->move(Board, initialPositionOfPiece, finalPositionOfPiece);
 		}
@@ -1043,10 +1093,9 @@ public:
 			cout << "Square is empty - Chessboard::move" << endl;
 		}
 		
-		
+		updateAll();
 	}
 
-	//highlights movable spots
 	Square* getSquare(int pos) {
 		return &Board[pos];
 
@@ -1054,10 +1103,10 @@ public:
 		//if the player wants to move it then it should call move function of piece - if NOT then it should unhighlight the moves
 	}
 
-
 	void printChessBoard() {
-
+		// display board with numbers - debugging purposes
 		/*for (int i = 0; i < SIZE; ++i) {
+			
 			if (i % 8 == 0 && i != 0) {
 				cout << endl;
 			}
@@ -1067,6 +1116,7 @@ public:
 			cout << i << Board[i].getPieceLetter() << " ";
 			
 		}*/
+		// display Board only letters
 		for (int i = 0; i < SIZE; ++i) {
 			if (i % 8 == 0 && i != 0) {
 				cout << endl;
@@ -1075,12 +1125,17 @@ public:
 
 		}
 
+
+
+
+
+		cout << endl;
 	}
 	
 	void printMovesOnSquare(int pos) {
 		
 		if (!Board[pos].is_empty()) {
-			Board[pos].getPiece()->updateMoves(Board, pos);
+			//Board[pos].getPiece()->updateMoves(Board, pos);
 			Board[pos].getPiece()->printMoves();
 		}
 		else {
@@ -1093,23 +1148,38 @@ public:
 };
 
 
+
+
 int main() {
 
 	Chessboard b1;
 
-
 	int initialPos;
 	int finalPos;
+
+
 	while (true) {
+		
 		b1.printChessBoard();
-		cout << endl;
+
+		cout << "Enter index of piece: ";
+		
 		cin >> initialPos;
+		if (cin.fail()) {
+			cout << "Exited" << endl;
+			break;
+		}
+	
+		cout << "Moves: ";
 		b1.printMovesOnSquare(initialPos);
 		cin >> finalPos;
+		if (cin.fail()) {
+			cout << "Exited" << endl;
+			break;
+		}
 		b1.move(initialPos, finalPos);
-		//b1.getSquare(initialPos)->getPiece()->move(b1.getSquare(finalPos));
 
-
+		
 	}
 	
 
